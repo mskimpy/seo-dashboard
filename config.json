@@ -1,0 +1,18 @@
+{
+  "site": "rusklimat.ru",
+  "competitors": [
+    "daichi.ru",
+    "ballu.ru",
+    "electrolux.ru"
+  ],
+  "bases": ["msk", "gru"],
+  "keywords_per_domain": 50,
+  "trend_months": 12,
+  "api": {
+    "url": "https://api.keys.so",
+    "delay": 0.6,
+    "timeout": 60,
+    "max_retries": 3
+  },
+  "_comment": "base — региональная база: msk = Яндекс Москва, gru = Google Москва, spb = Яндекс СПб, ekb = Яндекс Екатеринбург и т.д. Полный список в документации Keys.so."
+}
