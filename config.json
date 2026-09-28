@@ -1,18 +1,59 @@
 {
   "site": "rusklimat.ru",
-  "competitors": [
-    "daichi.ru",
-    "ballu.ru",
-    "electrolux.ru"
-  ],
   "bases": ["msk", "gru"],
   "keywords_per_domain": 50,
+  "competitor_keywords": 100,
   "trend_months": 12,
+
+  "_groups_comment": "Конкуренты разбиты по группам. Порядок групп = порядок блоков в таблице сравнения. Чтобы добавить или убрать домен, правьте только этот список.",
+  "groups": [
+    {
+      "id": "marketplaces",
+      "title": "Маркетплейсы и крупные магазины",
+      "domains": [
+        "dns-shop.ru",
+        "vseinstrumenti.ru",
+        "lemanapro.ru",
+        "mvideo.ru"
+      ]
+    },
+    {
+      "id": "close",
+      "title": "Близкие по ассортименту и размеру",
+      "domains": [
+        "lunda.ru",
+        "santech.ru",
+        "mircli.ru"
+      ]
+    },
+    {
+      "id": "niche",
+      "title": "Меньше по размеру, но заметны в топе",
+      "domains": [
+        "master-water.ru",
+        "tavago.ru",
+        "vent-style.ru",
+        "teplodvor.ru",
+        "teplomatica.ru",
+        "teplovodservice.ru",
+        "klimatov.ru",
+        "comtermo.ru",
+        "neuroclimat.ru",
+        "mnogo-tepla.ru",
+        "santehmir.ru",
+        "teplotehnika.net"
+      ]
+    }
+  ],
+
+  "_selected_comment": "Кого показывать на графиках и в таблице запросов при открытии. Остальные видны в рейтинге и таблице сравнения, их можно включить галочкой прямо на дашборде.",
+  "selected_by_default": ["lunda.ru", "santech.ru", "mircli.ru"],
+
+  "_api_comment": "Пауза между запросами подобрана под лимит Keys.so в 10 запросов за 10 секунд.",
   "api": {
     "url": "https://api.keys.so",
     "delay": 0.6,
-    "timeout": 60,
+    "timeout": 90,
     "max_retries": 3
-  },
-  "_comment": "base — региональная база: msk = Яндекс Москва, gru = Google Москва, spb = Яндекс СПб, ekb = Яндекс Екатеринбург и т.д. Полный список в документации Keys.so."
+  }
 }

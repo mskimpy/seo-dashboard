@@ -17,7 +17,6 @@
         <p class="subtitle" id="subtitle">загрузка…</p>
       </div>
     </div>
-
     <div class="controls">
       <div class="switch" id="base-switch" role="tablist" aria-label="Поисковая система"></div>
       <button id="refresh-btn" class="ghost-btn" type="button" title="Перечитать файл данных">Обновить</button>
@@ -29,15 +28,22 @@
 
   <section class="kpi-grid" id="kpi-grid" aria-label="Ключевые показатели"></section>
 
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Рейтинг по видимости</h2>
+      <span class="hint">все домены отчёта, сверху — самые заметные в поиске</span>
+    </div>
+    <div class="chart-box rank"><canvas id="chart-rank"></canvas></div>
+  </section>
+
   <section class="panel-grid">
-    <div class="panel span-2">
+    <div class="panel">
       <div class="panel-head">
         <h2>Динамика видимости</h2>
         <span class="hint" id="trend-hint"></span>
       </div>
       <div class="chart-box tall"><canvas id="chart-trend"></canvas></div>
     </div>
-
     <div class="panel">
       <div class="panel-head">
         <h2>Распределение запросов</h2>
@@ -50,13 +56,13 @@
   <section class="panel">
     <div class="panel-head">
       <h2>Сайт и конкуренты</h2>
-      <span class="hint">левая колонка — сайт, ниже — конкуренты по убыванию видимости</span>
+      <span class="hint">полный список по группам · строка сайта выделена синим</span>
     </div>
     <div class="table-scroll">
       <table class="data-table" id="compare-table">
         <thead>
           <tr>
-            <th class="col-domain">Домен</th>
+            <th>Домен</th>
             <th class="num">Видимость</th>
             <th class="num">Δ снимок</th>
             <th class="num">Трафик</th>
@@ -75,22 +81,34 @@
 
   <section class="panel">
     <div class="panel-head">
-      <h2>Запросы сайта и позиции конкурентов</h2>
-      <span class="hint">отсортировано по потенциальному трафику · нажмите на заголовок, чтобы изменить порядок</span>
+      <h2>Запросы сайта и позиции выбранных конкурентов</h2>
+      <span class="hint">нажмите на заголовок колонки, чтобы изменить порядок</span>
     </div>
     <div class="toolbar">
       <input type="search" id="kw-search" placeholder="Поиск по запросу…" autocomplete="off">
+      <label class="check-inline">
+        <input type="checkbox" id="kw-only-losing">
+        Только где мы проигрываем
+      </label>
       <span class="pill" id="kw-count"></span>
     </div>
     <div class="table-scroll">
-      <table class="data-table" id="kw-table">
+      <table class="data-table kw-table" id="kw-table">
         <thead><tr id="kw-head-row"></tr></thead>
         <tbody></tbody>
       </table>
     </div>
   </section>
 
-  <section class="panel-grid">
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Кого показывать на графиках и в таблице запросов</h2>
+      <span class="hint">сайт всегда включён · остальные домены видны в рейтинге и таблице сравнения</span>
+    </div>
+    <div class="picker" id="picker"></div>
+  </section>
+
+  <section class="panel-grid even">
     <div class="panel">
       <div class="panel-head">
         <h2>Трафик и реклама</h2>
