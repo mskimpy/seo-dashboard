@@ -121,6 +121,7 @@ def build_summary(domain, base, index):
             "topvis": random.randint(-25, 30),
             "pagesinindex": random.randint(-3200, 4100),
             "adtraf": random.randint(-1600, 1900),
+            "ai_answers": random.randint(-180, 240),
         },
     }
     return summary

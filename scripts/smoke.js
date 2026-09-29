@@ -65,13 +65,11 @@ const defaultSelected = (data.selected_by_default || []).filter((d) => allDomain
   console.log('\nЗагрузка:');
   check(errors.length === 0, errors.length ? `исключения: ${errors.join(' | ')}` : 'исключений нет');
   check(!$('#content').innerHTML.includes('Не удалось загрузить данные'), 'данные загрузились');
-  check($$('#kpi-grid .kpi').length === 5, `KPI-плиток: ${$$('#kpi-grid .kpi').length}`);
+  check($$('#kpi-grid .kpi').length === 6, `KPI-плиток: ${$$('#kpi-grid .kpi').length} (ожидалось 6)`);
 
   console.log('\nРейтинг по видимости:');
-  const rank = chartCalls.find((c) => c.id === 'chart-rank');
-  check(!!rank, 'график рейтинга создан');
-  check(!!rank && rank.axis === 'y', 'рейтинг горизонтальный (indexAxis=y)');
-  check(!!rank && rank.labels === allDomains.length, `полос: ${rank ? rank.labels : 0} (доменов: ${allDomains.length})`);
+  check(!chartCalls.some((c) => c.id === 'chart-rank'),
+    'график рейтинга убран по требованию — его нет среди созданных');
 
   console.log('\nТаблица сравнения:');
   const rows = $$('#compare-table tbody tr');
@@ -172,9 +170,23 @@ const defaultSelected = (data.selected_by_default || []).filter((d) => allDomain
   await flush();
   check($$('#kw-table tbody tr').length > 0, 'после сброса строки вернулись');
 
+  console.log('\nБлок «Видимость в Яндекс Алисе»:');
+  const aliceRows = $$('#alice-table tbody tr');
+  check(aliceRows.length > 0, `строк в таблице Алисы: ${aliceRows.length}`);
+  const aliceHeaderCells = $$('#alice-table thead th').length;
+  check(aliceHeaderCells === 5, `колонок в таблице Алисы: ${aliceHeaderCells} (ожидалось 5)`);
+  const aliceSparks = $$('#alice-table svg.spark').length;
+  check(aliceSparks > 0, `спарклайнов динамики: ${aliceSparks}`);
+  const aliceSiteRow = $('#alice-table tbody tr.is-site');
+  check(!!aliceSiteRow, 'строка сайта в таблице Алисы выделена');
+  // Порядок: по убыванию упоминаний
+  const aliceValues = aliceRows.map((tr) => Number(tr.querySelectorAll('td')[1].textContent.replace(/\s/g, '')));
+  check(aliceValues.every((v, i) => i === 0 || aliceValues[i - 1] >= v),
+    'таблица Алисы отсортирована по убыванию упоминаний');
+
   console.log('\nГрафики:');
   const ids = [...new Set(chartCalls.map((c) => c.id))].sort();
-  const expected = ['chart-depth', 'chart-pages', 'chart-rank', 'chart-traffic', 'chart-trend'];
+  const expected = ['chart-alice', 'chart-depth', 'chart-pages', 'chart-traffic', 'chart-trend'];
   check(ids.length === expected.length && ids.every((v, i) => v === expected[i]), `созданы: ${ids.join(', ')}`);
   check(chartCalls.every((c) => c.stackedArrays), 'во всех графиках данные — массивы значений');
   const trendNow = trend();

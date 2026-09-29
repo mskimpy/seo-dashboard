@@ -372,7 +372,8 @@ def main():
                 continue
             summary["delta"] = {
                 key: intnum(summary.get(key)) - intnum(old.get(key))
-                for key in ("it1", "it3", "it5", "it10", "it50", "vis", "topvis", "pagesinindex", "adtraf")
+                for key in ("it1", "it3", "it5", "it10", "it50", "vis", "topvis",
+                            "pagesinindex", "adtraf", "ai_answers")
             }
 
     store["previous_at"] = (previous or {}).get("generated_at")
