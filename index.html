@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SEO-дашборд — РУСКЛИМАТ и конкуренты</title>
 <link rel="stylesheet" href="assets/style.css">
+<!-- Иконка вкладки: встроена как SVG, чтобы не заводить лишний файл -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f5fd6'/%3E%3Cpath d='M8 23V9h4.6l3.4 8.2L19.4 9H24v14h-3.4v-8.6L17.4 23h-3.2l-3.2-8.6V23z' fill='%23fff'/%3E%3C/svg%3E">
 </head>
 <body>
 
@@ -30,10 +32,10 @@
 
   <section class="panel">
     <div class="panel-head">
-      <h2>Рейтинг по видимости</h2>
-      <span class="hint">все домены отчёта, сверху — самые заметные в поиске</span>
+      <h2>Кого показывать на графиках и в таблице запросов</h2>
+      <span class="hint">сайт всегда включён · остальные домены видны в таблице сравнения и в таблице Алисы</span>
     </div>
-    <div class="chart-box rank"><canvas id="chart-rank"></canvas></div>
+    <div class="picker" id="picker"></div>
   </section>
 
   <section class="panel-grid">
@@ -51,6 +53,14 @@
       </div>
       <div class="chart-box tall"><canvas id="chart-depth"></canvas></div>
     </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Страниц в индексе</h2>
+      <span class="hint">динамика по месяцам</span>
+    </div>
+    <div class="chart-box wide"><canvas id="chart-pages"></canvas></div>
   </section>
 
   <section class="panel">
@@ -102,10 +112,23 @@
 
   <section class="panel">
     <div class="panel-head">
-      <h2>Кого показывать на графиках и в таблице запросов</h2>
-      <span class="hint">сайт всегда включён · остальные домены видны в рейтинге и таблице сравнения</span>
+      <h2>Видимость в Яндекс Алисе</h2>
+      <span class="hint" id="alice-hint">упоминания сайта в ответах Алисы за 30 дней</span>
     </div>
-    <div class="picker" id="picker"></div>
+    <div class="table-scroll">
+      <table class="data-table" id="alice-table">
+        <thead>
+          <tr>
+            <th>Домен</th>
+            <th class="num">Упоминаний за 30 дней</th>
+            <th class="num">Место</th>
+            <th class="num">Δ к снимку</th>
+            <th>Динамика за год</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </section>
 
   <section class="panel-grid even">
@@ -118,10 +141,10 @@
     </div>
     <div class="panel">
       <div class="panel-head">
-        <h2>Страниц в индексе</h2>
-        <span class="hint">динамика по месяцам</span>
+        <h2>Упоминания в Алисе по месяцам</h2>
+        <span class="hint">выбранные домены</span>
       </div>
-      <div class="chart-box"><canvas id="chart-pages"></canvas></div>
+      <div class="chart-box"><canvas id="chart-alice"></canvas></div>
     </div>
   </section>
 
