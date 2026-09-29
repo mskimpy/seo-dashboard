@@ -35,6 +35,9 @@ const POS_LABELS = [
   { key: 'it50', label: 'Топ-50' },
 ];
 
+/* Данные по Алисе Keys.so отдаёт только для базы Яндекса. */
+const ALICE_BASES = ['msk'];
+
 const state = {
   store: null,
   base: null,
@@ -81,6 +84,11 @@ function esc(text) {
 }
 
 function baseLabel(code) { return BASE_LABELS[code] || code.toUpperCase(); }
+
+/** Есть ли в текущей базе данные по Алисе. */
+function aliceAvailable(base) {
+  return ALICE_BASES.includes(base || state.base);
+}
 
 /* --------------------------- работа с данными --------------------------- */
 
@@ -130,7 +138,7 @@ function colorFor(domain, base) {
 }
 
 function emptyHistoryRow(period) {
-  return { period, it1: 0, it3: 0, it5: 0, it10: 0, it50: 0, vis: 0, ads: 0, pages: 0 };
+  return { period, it1: 0, it3: 0, it5: 0, it10: 0, it50: 0, vis: 0, ads: 0, pages: 0, ai: 0 };
 }
 
 /** Сводит истории выбранных доменов в общий набор месяцев. */
@@ -153,6 +161,31 @@ function historyGrid(metricKey, base, domains) {
   });
 
   return { periods, byDomain, domains: list };
+}
+
+/** Искра-график: короткая ломаная по значениям, без осей и подписей. */
+function sparkline(values, color) {
+  const width = 132;
+  const height = 26;
+  if (!values || values.length < 2) return '<span class="muted-dash">—</span>';
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const step = width / (values.length - 1);
+
+  const points = values.map((v, i) => {
+    const x = i * step;
+    const y = height - 3 - ((v - min) / span) * (height - 6);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+
+  const trendUp = values[values.length - 1] >= values[0];
+  return `<svg class="spark" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"
+     role="img" aria-label="динамика за год">
+    <polyline points="${points}" fill="none" stroke="${trendUp ? color : '#c9342b'}"
+      stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"></polyline>
+  </svg>`;
 }
 
 /* ------------------------------- KPI ------------------------------------ */
@@ -198,6 +231,16 @@ function renderKpis() {
     },
   ];
 
+  // Упоминания в Алисе есть только в базе Яндекса — в Google-базе карточку не показываем.
+  if (aliceAvailable()) {
+    cards.push({
+      label: 'Упоминаний в Алисе',
+      value: fmt(summary.ai_answers),
+      delta: delta && delta.ai_answers !== undefined ? delta.ai_answers : undefined,
+      note: 'в ответах за последние 30 дней',
+    });
+  }
+
   document.getElementById('kpi-grid').innerHTML = cards.map((card) => `
     <div class="kpi ${card.cls || ''}">
       <div class="kpi-label">${esc(card.label)}</div>
@@ -234,65 +277,6 @@ function killChart(name) {
 const tooltipNumbers = {
   callbacks: { label: (ctx) => (ctx.dataset.label ? ctx.dataset.label + ': ' : '') + fmt(ctx.parsed.y ?? ctx.parsed.x ?? ctx.parsed) },
 };
-
-/** Рейтинг: горизонтальные полосы по всем доменам. Читается и на двадцати. */
-function renderRankChart() {
-  killChart('rank');
-  const site = state.store.site;
-  const ranked = allDomains(state.base).sort((a, b) => metric(a, 'vis') - metric(b, 'vis'));
-  const values = ranked.map((d) => metric(d, 'vis'));
-  const colors = ranked.map((d) => colorFor(d));
-
-  charts.rank = new Chart(document.getElementById('chart-rank'), {
-    type: 'bar',
-    data: {
-      labels: ranked,
-      datasets: [{
-        label: 'Видимость',
-        data: values,
-        backgroundColor: colors,
-        borderRadius: 4,
-        borderSkipped: false,
-        barPercentage: 0.72,
-      }],
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label(ctx) {
-              const domain = ranked[ctx.dataIndex];
-              const s = summaryOf(domain) || {};
-              const parts = [`Видимость: ${fmt(s.vis)}`];
-              if (domain === site) parts.push('— это наш сайт');
-              else {
-                const our = metric(site, 'vis');
-                const ours = our ? Math.round((s.vis / our) * 100) : 0;
-                parts.push(`${ours}% от нашей видимости`);
-              }
-              return parts;
-            },
-          },
-        },
-      },
-      scales: {
-        x: { beginAtZero: true, grid: { color: '#eef1f6' }, ticks: { callback: (v) => fmt(v) } },
-        y: {
-          grid: { display: false },
-          ticks: {
-            autoSkip: false,
-            font: (ctx) => ({ weight: ranked[ctx.index] === site ? '650' : '450', size: 12 }),
-            color: (ctx) => (ranked[ctx.index] === site ? '#1f5fd6' : '#4a5a6e'),
-          },
-        },
-      },
-    },
-  });
-}
 
 function renderTrendChart() {
   killChart('trend');
@@ -453,6 +437,47 @@ function renderPagesChart() {
   });
 }
 
+/** Упоминания выбранных домменов в ответах Алисы по месяцам. */
+function renderAliceChart() {
+  killChart('alice');
+  const canvas = document.getElementById('chart-alice');
+  if (!canvas) return;
+
+  if (!aliceAvailable()) {
+    return;
+  }
+
+  const grid = historyGrid('ai');
+  const site = state.store.site;
+
+  charts.alice = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: grid.periods.map(fmtPeriod),
+      datasets: grid.domains.map((domain) => ({
+        label: domain,
+        data: grid.byDomain[domain],
+        borderColor: colorFor(domain),
+        backgroundColor: 'transparent',
+        borderWidth: domain === site ? 3 : 1.8,
+        tension: 0.28,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+      })),
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { position: 'bottom' }, tooltip: tooltipNumbers },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, grid: { color: '#eef1f6' }, ticks: { callback: (v) => fmt(v) } },
+      },
+    },
+  });
+}
+
 /* ------------------------------ таблицы --------------------------------- */
 
 function renderCompareTable() {
@@ -491,6 +516,72 @@ function renderCompareTable() {
   });
 
   tbody.innerHTML = parts.join('');
+}
+
+/** Таблица видимости в Яндекс Алисе: все домены, по убыванию упоминаний. */
+function renderAliceTable() {
+  const table = document.getElementById('alice-table');
+  const tbody = document.querySelector('#alice-table tbody');
+  const hint = document.getElementById('alice-hint');
+  if (!table || !tbody) return;
+
+  const site = state.store.site;
+
+  if (!aliceAvailable()) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-cell">
+      Keys.so отдаёт данные по Алисе только для базы Яндекса.
+      Переключитесь на «Яндекс · Москва» в шапке страницы.
+    </td></tr>`;
+    if (hint) hint.textContent = 'недоступно для выбранной базы';
+    if (table.querySelector('thead')) table.querySelector('thead').style.display = 'none';
+    return;
+  }
+  if (table.querySelector('thead')) table.querySelector('thead').style.display = '';
+
+  const rows = allDomains(state.base)
+    .filter((d) => summaryOf(d))
+    .map((domain) => {
+      const s = summaryOf(domain) || {};
+      const history = historyOf(domain).map((p) => Number(p.ai) || 0);
+      return {
+        domain,
+        mentions: Number(s.ai_answers) || 0,
+        delta: s.delta && s.delta.ai_answers !== undefined ? s.delta.ai_answers : null,
+        history,
+      };
+    })
+    .sort((a, b) => b.mentions - a.mentions);
+
+  if (!rows.length || rows.every((r) => r.mentions === 0 && r.history.every((v) => !v))) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-cell">
+      Keys.so пока не вернул данные по Алисе ни по одному домену.
+    </td></tr>`;
+    if (hint) hint.textContent = 'данных нет';
+    return;
+  }
+
+  tbody.innerHTML = rows.map((row, index) => {
+    const isSite = row.domain === site;
+    const spark = sparkline(row.history, colorFor(row.domain));
+    const deltaCell = row.delta === null ? deltaHtml(null) : deltaHtml(row.delta);
+    return `
+      <tr class="${isSite ? 'is-site' : ''}">
+        <td>
+          <span class="domain-cell">
+            <span class="domain-dot" style="background:${colorFor(row.domain)}"></span>
+            ${esc(row.domain)}${isSite ? ' <span class="pill">сайт</span>' : ''}
+          </span>
+        </td>
+        <td class="num">${fmt(row.mentions)}</td>
+        <td class="num">${index + 1}</td>
+        <td class="num">${deltaCell}</td>
+        <td class="spark-cell">${spark}</td>
+      </tr>`;
+  }).join('');
+
+  if (hint) {
+    hint.textContent = `упоминания в ответах Алисы за 30 дней · всего доменов: ${rows.length}`;
+  }
 }
 
 function renderKeywordTable() {
@@ -688,18 +779,19 @@ function renderChartsAndTable() {
   renderDepthChart();
   renderTrafficChart();
   renderPagesChart();
+  renderAliceChart();
   renderKeywordTable();
 }
 
 function renderAll() {
   renderKpis();
-  renderRankChart();
   renderCompareTable();
+  renderAliceTable();
   renderPicker();
   renderChartsAndTable();
 
   document.getElementById('footer-source').textContent =
-    `Источник: Keys.so · снимок ${state.store.generated_at_msk || state.store.generated_at} · автообновление раз в 3 часа`;
+    `Источник: Keys.so · снимок ${state.store.generated_at_msk || state.store.generated_at}`;
 
   const errors = state.store.errors || [];
   const box = document.getElementById('footer-errors');

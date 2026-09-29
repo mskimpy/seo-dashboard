@@ -175,7 +175,6 @@ h1, h2, h3 { margin: 0; font-weight: 650; letter-spacing: -.01em; }
 /* ------------------------------ графики --------------------------------- */
 .chart-box { position: relative; height: 260px; }
 .chart-box.tall { height: 320px; }
-.chart-box.rank { height: 640px; }
 
 /* -------------------------- выбор конкурентов --------------------------- */
 .picker { display: flex; flex-direction: column; gap: 14px; }
@@ -412,7 +411,6 @@ a.serp-link:hover { text-decoration: underline; }
 /* ------------------------------ адаптив --------------------------------- */
 @media (max-width: 1080px) {
   .panel-grid, .panel-grid.even { grid-template-columns: 1fr; }
-  .chart-box.rank { height: 820px; }
 }
 
 @media (max-width: 720px) {
@@ -420,7 +418,6 @@ a.serp-link:hover { text-decoration: underline; }
   .topbar-inner { padding: 12px 14px; }
   .kpi-value { font-size: 22px; }
   .chart-box, .chart-box.tall { height: 260px; }
-  .chart-box.rank { height: 900px; }
   .word-cell { max-width: 180px; }
 }
 
@@ -429,3 +426,20 @@ a.serp-link:hover { text-decoration: underline; }
   .controls, .toolbar, .picker-actions { display: none; }
   .panel { break-inside: avoid; }
 }
+
+/* ------------------------ таблица Алисы и спарклайны --------------------- */
+.chart-box.wide { height: 320px; }
+
+.empty-cell {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 18px 12px;
+  white-space: normal;
+  line-height: 1.5;
+}
+
+.spark-cell { padding-top: 5px; padding-bottom: 5px; }
+
+.spark { display: block; }
+
+.muted-dash { color: #c3cbd6; }
